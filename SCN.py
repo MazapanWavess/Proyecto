@@ -36,9 +36,10 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS ventas (
 
 scn = Tk()
 scn.geometry("925x500")
+scn.resizable(False,False)
 scn.title("Sofware de Control de Negocios (SCN)")
 scn.config(bg='white')
-scn.iconbitmap(r"E:\EMMA\imagens\icono.ico")
+scn.iconbitmap(r"E:\EMMA\Proyecto\imagens\icono.ico")
 
 
 # Clases
@@ -492,16 +493,24 @@ class ListaProductos:
         cursor.execute("SELECT * FROM productos")
         productos = cursor.fetchall()
 
-        y=100
+
+        lista_de_productos = Listbox(self.lista_producto,
+                                        width=100,
+                                        height=17,
+                                        bg="#393E46",
+                                        fg="#00ADB5")
+        lista_de_productos.config(font=('Microsoft YaHei UI Light', 12))
+        lista_de_productos.place(x=10,y=100)
+
 
         if productos:
             mostrar_producto= Label(self.lista_producto,text="Lista de productos:")
+            mostrar_producto.config(font=('Microsoft YaHei UI Light', 17),
+                                    bg="#393E46",
+                                    fg="#00ADB5")
             mostrar_producto.place(x=50,y=50)
             for producto in productos:
-                mostrar_productos_ordenados = Label(self.lista_producto,text=( f"ID: {producto[0]}Nombre: {producto[1]} - Precio comercial: {producto[2]} - Inversión: {producto[3]} - Cantidad: {producto[4]} - Precio por unidad: {producto[5]}"))
-                mostrar_productos_ordenados.place(x=50,y=y)
-                y = y+ 50
-
+                lista_de_productos.insert(END,f"ID: {producto[0]} - Nombre: {producto[1]} - Precio comercial: {producto[2]} - Inversión: {producto[3]} - Cantidad: {producto[4]} - Precio por unidad: {producto[5]}")
 
         else:
             no_productos= Label(self.lista_producto,"Productos no disponibles")
@@ -798,7 +807,14 @@ class VentasDelDia:
         self.eti_ventas_del_dia.place(x=50,y=4 )
         self.eti_ventas_del_dia.config(font=('Microsoft YaHei UI Light', 15))
 
-
+        ###########
+        lista_de_ventas = Listbox(self.ventas_del_dia,
+                                        width=100,
+                                        height=17,
+                                        bg="#393E46",
+                                        fg="#00ADB5")
+        lista_de_ventas.config(font=('Microsoft YaHei UI Light', 12))
+        lista_de_ventas.place(x=10,y=100)
 
         ###########
 
@@ -810,16 +826,19 @@ class VentasDelDia:
         if ventas:
             total_ventas = sum([venta[2] for venta in ventas])
             result_fecha=Label(self.ventas_del_dia,text=(f"Ventas del día de hoy :"))
-            result_fecha.config(font=('Microsoft YaHei UI Light', 13),
+            result_fecha.config(font=('Microsoft YaHei UI Light', 16),
                                 bg="#393E46",
                                 fg="#00ADB5")
             result_fecha.place(x=50,y=50)
+
             for venta in ventas:
-                mostrar_venta=Label(self.ventas_del_dia,text=( f"Num.Venta: {venta[0]}, Producto: {venta[1]}, Cantidad: {venta[2]}, Venta: {venta[4]} , Ganancia: {venta[5]} ,Fecha: {venta[3]}\n"))
-                mostrar_venta.config(font=('Microsoft YaHei UI Light', 15))
-                mostrar_venta.place(x=50,y=230)
+                lista_de_ventas.insert(END,f"Num.Venta: {venta[0]}, Producto: {venta[1]}, Cantidad: {venta[2]}, Venta: {venta[4]} , Ganancia: {venta[5]} ,Fecha: {venta[3]}\n")
+
             mostrar_venta2=Label(self.ventas_del_dia,text=(f"Total de ventas: {total_ventas}"))
-            mostrar_venta2.place(x=50,y=260)
+            mostrar_venta2.config(font=('Microsoft YaHei UI Light', 16),
+                                    bg="#393E46",
+                                    fg="#00ADB5")
+            mostrar_venta2.place(x=700,y=50)
 
         else:
             mostrar_venta3=Label(self.ventas_del_dia,text="No se encontraron ventas para la fecha especificada.")
@@ -1058,7 +1077,7 @@ class InicioSesion:
         self.boton_inicio_sesion.Botones()
 
         #imagen
-        self.img1 = PhotoImage(file=(r"E:\EMMA\imagens\01.png"))
+        self.img1 = PhotoImage(file=(r"E:\EMMA\Proyecto\imagens\01.png"))
         Label(self.inicio_sesion,image=self.img1,border=0,bg='#222831').place(x=50,y=50)
 
         # Etiqueta si no tiene cuenta (Registrarse)
