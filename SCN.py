@@ -31,6 +31,10 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS ventas (
     )
 ''')
 
+cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios
+                    (id INTEGER PRIMARY KEY,
+                    usuario TEXT,
+                    contraseña TEXT)''')
 
 # Ventana principal
 
@@ -58,23 +62,24 @@ class CajasDeTexto:
     def Caja(self):
 
         def on_enter(e):
-            etiqueta.delete(0,'end')    
+            self.etiqueta.delete(0,'end')   
+        
         def on_leave(e):
-            if etiqueta.get()=='':   
-                etiqueta.insert(0,self.texto)
+            if self.etiqueta.get()=='':   
+                self.etiqueta.insert(0,self.texto)
         
         etiqueta = StringVar()
-        etiqueta=Entry(self.ubicacion,
+        self.etiqueta=Entry(self.ubicacion,
                         width=self.ancho,
                         fg=self.color1,
                         border=0,
                         bg=self.color2,
                         )
-        etiqueta.config(font=('Microsoft YaHei UI Light',11,))
-        etiqueta.bind("<FocusIn>",on_enter)
-        etiqueta.bind("<FocusOut>",on_leave)
-        etiqueta.insert(0,self.nombre)
-        etiqueta.place(x=self.x,y=self.y)
+        self.etiqueta.config(font=('Microsoft YaHei UI Light',11,))
+        self.etiqueta.bind("<FocusIn>",on_enter)
+        self.etiqueta.bind("<FocusOut>",on_leave)
+        self.etiqueta.insert(0,self.nombre)
+        self.etiqueta.place(x=self.x,y=self.y)
 
 #--------------------------------------------------------------------------------------------------------------
 
@@ -118,7 +123,9 @@ class BotonesDiferentes:
 #--------------------------------------------------------------------------------------------------------------
 class Home:
     def __init__(self):
-        
+        None
+
+    def mostrar_contenido(self):
 
         self.home = Frame(scn,width=925,
                             height=500,
@@ -148,6 +155,17 @@ class Home:
                                             bg="#222831")
         self.eti_agregar_producto.place(x=50,y=4)
         self.eti_agregar_producto.config(font=('Microsoft YaHei UI Light', 15))
+
+        self.img1 = PhotoImage(file=(r"E:\EMMA\Proyecto\imagens\inicio.png"))
+        Label(self.home,image=self.img1,border=0,bg='#393E46').place(x=350,y=70)
+
+        self.bienvenida = Label(self.home,
+                                            text=(f"¡BIENVENIDO!\n{usuario_sesion.upper()}"),
+                                            fg="#00ADB5",
+                                            bg="#393E46",
+                                            anchor="w")
+        self.bienvenida.place(x=50,y=190)
+        self.bienvenida.config(font=('Microsoft YaHei UI Light', 35, 'bold'))
 
 
 #--------------------------------------------------------------------------------------------------------------
@@ -356,7 +374,11 @@ class AgregarProducto:
                                     8,
                                     120,
                                     quitar_frame_correcto)
-                boton_correcto_regresar.Botones()          
+                boton_correcto_regresar.Botones() 
+            self.nombre.delete(0,END)
+            self.inversion.delete(0,END)
+            self.cantidad.delete(0,END)
+            self.precio.delete(0,END)
 
         #####
         self.agregar_producto = Frame(scn,width=925,
@@ -528,7 +550,7 @@ class BuscarProductos:
             producto = cursor.fetchone()
 
             if producto:
-  
+
 
                 mostrar_producto=Label(self.buscar_producto,text=(f"Detalles del Producto:\nNombre: {producto[1]}\nPrecio comercial: {producto[2]}\nInversión requerida: {producto[3]}\nCantidad: {producto[4]}\nPrecio por unidad: {producto[5]} "))
                 mostrar_producto.config(font=('Microsoft YaHei UI Light', 20),
@@ -539,6 +561,9 @@ class BuscarProductos:
 
                 nose_encontro=Label(self.buscar_producto,text=("El producto no se encontró en la lista.\n"))
                 nose_encontro.place(x=20,y=50)
+
+            self.producto.delete(0,END)
+
 
         self.buscar_producto = Frame(scn,width=925,
                             height=500,
@@ -706,7 +731,8 @@ class RegistrarVenta:
                                 quitar_frame_no_disponible)
                 boton_no_disponible_regresar.Botones()  
                 
-        
+            self.nombre.delete(0,END)
+            self.cantidad.delete(0,END)
 
         self.registra_venta = Frame(scn,width=925,
                             height=500,
@@ -752,7 +778,7 @@ class RegistrarVenta:
 
         #2
         self.eti_agregar = Label(self.registra_venta,
-                                            text="Ingresar Invercion (lote):",
+                                            text="Cantidad vendida:",
                                             fg="#00ADB5",
                                             bg="#393E46")
         self.eti_agregar.place(x=200,y=170 )
@@ -849,6 +875,58 @@ class VentasDelDia:
 #--------------------------------------------------------------------------------------------------------------
 class VentasAnteriores:
     def __init__(self):
+
+        def ver_ventas_anteriores():
+
+            def quitar_frame_error():
+                error.destroy()
+
+            lista_de_ventas.delete(0,END)
+
+            fecha_consulta = self.producto.get()
+
+            cursor.execute("SELECT * FROM ventas WHERE fecha=?", (fecha_consulta,))
+            ventas = cursor.fetchall()
+
+            if ventas:
+                total_ventas = sum([venta[2] for venta in ventas])
+                etiqueta_ventas_dia = Label(self.ventas_anteriores,
+                                            text=(f"Ventas del día {fecha_consulta}"),
+                                            fg="#00ADB5",
+                                            bg="#393E46")
+                etiqueta_ventas_dia.config(font=('Microsoft YaHei UI Light', 15))
+                etiqueta_ventas_dia.place(x=350,y=180)
+
+                for venta in ventas:
+                    lista_de_ventas.insert(END,f"Num.Venta: {venta[0]}, Producto: {venta[1]}, Cantidad: {venta[2]}, Venta: {venta[4]} , Ganancia: {venta[5]} ,Fecha: {venta[3]}\n")
+                
+                self.producto.delete(0,END)
+            else:
+                error = Frame(self.ventas_anteriores,
+                            width=300,
+                            height=170,
+                            bg="#00ADB5",
+                            )
+                error.place(x=325,y=190)
+
+                eti_error = Label(error,
+                                    text=("No se encontraron ventas para\nla fecha especificada."),
+                                    font=('Microsoft YaHei UI Light', 15),
+                                    fg="#222831",
+                                    bg="#00ADB5")
+                eti_error.place(x=5,y=20)
+
+                boton_error_regresar = BotonesDiferentes(error,
+                                    40,
+                                    10,
+                                    "REGRESAR",
+                                    "#393E46",#gris
+                                    '#328e93',#azul
+                                    8,
+                                    120,
+                                    quitar_frame_error)
+                boton_error_regresar.Botones()  
+
         
         self.ventas_anteriores = Frame(scn,width=925,
                             height=500,
@@ -877,7 +955,44 @@ class VentasAnteriores:
                                             bg="#222831")
         self.eti_ventas_anteriores.place(x=50,y=4 )
         self.eti_ventas_anteriores.config(font=('Microsoft YaHei UI Light', 15))
+
+        #1
+        self.eti_agregar = Label(self.ventas_anteriores,
+                                            text="Ingrese la fecha (formato: YYYY-MM-DD):",
+                                            fg="#00ADB5",
+                                            bg="#393E46")
+        self.eti_agregar.place(x=200,y=60 )
+        self.eti_agregar.config(font=('Microsoft YaHei UI Light', 15))
+
+        self.producto=StringVar()
+        self.producto = Entry(self.ventas_anteriores,textvariable=self.producto,width=50)
+        self.producto.place(x=200,y=90 )
+        self.producto.config(font=('Microsoft YaHei UI Light', 15))
+        self.producto.get()
+
+        self.boton = BotonesDiferentes(self.ventas_anteriores,
+                                            40,
+                                            10,
+                                            " BUSCAR ",
+                                            "#00ADB5",#00ADB5
+                                            '#222831',
+                                            330,
+                                            130,
+                                            ver_ventas_anteriores,)
+        self.boton.Botones()  
+
+        lista_de_ventas = Listbox(self.ventas_anteriores,
+                                        width=100,
+                                        height=12,
+                                        bg="#393E46",
+                                        fg="#00ADB5")
+        lista_de_ventas.config(font=('Microsoft YaHei UI Light', 12))
+        lista_de_ventas.place(x=10,y=220)
+
+
+
 #--------------------------------------------------------------------------------------------------------------
+
 class Ayuda:
     def __init__(self):
         
@@ -894,9 +1009,9 @@ class Ayuda:
 
         self.texto1 = Label(self.ayuda2,text="SCN\n""SCN es un software desarrollado para obtener una mejor administracion en tu negocio o comercio puesto que \n gracias a su eficiencia resulta ser muy facil de utilizar. \n \n""¡COMO USAR SCN? \n"
 "------------------ \n""AGREGAR PRODUCTO:Esta opcion sirve para poder registrar los productos y sus datos principales como su nombre, \ninvercion, cantidad disponible y precio de venta. Para poder guardar estos datos se oprime al final el boton 'AGREGAR'.\n"
-"------------------ \n""BUSCAR PRODUCTO:Utilice esta opcion para poder acceder a los registros de un producto en especifico, Ingrese el ID del\n producto deseado para consultar la información. \n"
+"------------------ \n""BUSCAR PRODUCTO:Utilice esta opcion para poder acceder a los registros de un producto en especifico, Ingrese el nombre del\n producto deseado para consultar la información. \n"
 "------------------ \n""LISTA DE PRODUCTOS:Consulta todos los productos registrados en el sistema hasta el momento con esta opcion.  \n"
-"------------------ \n""REGISTRAR VENTA:Registrar la venta de un producto previamente registrado, unicamente necesita el ID del producto\n y la cantidad vendida. \n"
+"------------------ \n""REGISTRAR VENTA:Registrar la venta de un producto previamente registrado, unicamente necesita el nombre del producto\n y la cantidad vendida. \n"
 "------------------ \n""VENTAS DEL DIA:Accede a las ventas registradas del dia en curso con esta opcion. \n"
 "------------------ \n""VENTAS ANTERIORES:Accede a los registros de las ventas de dias anteriores, para esto se ingresa la fecha en formato DD/MM/AAAA \ny se confirma la fecha\n"
 "------------------ \n  ¡Optimiza la gestión de tu negocio con SCN, la solución eficiente y fácil de utilizar para el éxito empresarial!")
@@ -934,6 +1049,77 @@ class Ayuda:
 
 class RegistrarCuenta:
     def __init__(self):
+        def registrar():
+
+            def quitar_frame_error():
+                error.destroy()    
+
+            def quitar_frame_exitoso():
+                exitoso.destroy()
+                self.registra_cuenta.destroy()    
+            
+            
+            usuario = self.Usuario.etiqueta.get()
+            contraseña = self.Contraseña.etiqueta.get()
+
+            cursor.execute("SELECT * FROM usuarios WHERE usuario = ?", (usuario,))
+            usuario_existente = cursor.fetchone()
+
+            if usuario_existente:
+                error = Frame(self.registra_cuenta,
+                            width=300,
+                            height=170,
+                            bg="#00ADB5",
+                            )
+                error.place(x=325,y=190)
+
+                eti_error = Label(error,
+                                    text=("El usuario ya está registrado.\nIntente con otro nombre\nde usuario."),
+                                    font=('Microsoft YaHei UI Light', 15),
+                                    fg="#222831",
+                                    bg="#00ADB5")
+                eti_error.place(x=20,y=20)
+
+                boton_error_regresar = BotonesDiferentes(error,
+                                    40,
+                                    10,
+                                    "REGRESAR",
+                                    "#393E46",#gris
+                                    '#328e93',#azul
+                                    8,
+                                    120,
+                                    quitar_frame_error)
+                boton_error_regresar.Botones()
+            
+            else:
+                cursor.execute("INSERT INTO usuarios (usuario, contraseña) VALUES (?, ?)", (usuario, contraseña))
+                conexion.commit()
+
+                exitoso = Frame(self.registra_cuenta,
+                            width=300,
+                            height=170,
+                            bg="#00ADB5",
+                            )
+                exitoso.place(x=325,y=190)
+
+                eti_exitoso = Label(exitoso,
+                                    text=("Registro exitoso.\nEl usuario se ha registrado\ncorrectamente."),
+                                    font=('Microsoft YaHei UI Light', 15),
+                                    fg="#222831",
+                                    bg="#00ADB5")
+                eti_exitoso.place(x=20,y=20)
+
+                boton_exitoso_regresar = BotonesDiferentes(exitoso,
+                                    40,
+                                    10,
+                                    "INICIAR SESION",
+                                    "#393E46",#gris
+                                    '#328e93',#azul
+                                    8,
+                                    120,
+                                    quitar_frame_exitoso)
+                boton_exitoso_regresar.Botones()
+
 
         # Frames Para registrarse
         self.registra_cuenta = Frame(scn,width=925,
@@ -966,6 +1152,7 @@ class RegistrarCuenta:
                                 60,
                                 "Usuario")
         self.Usuario.Caja()
+        self.Usuario.etiqueta.get()
         Frame(self.cajas_registrar,width=295,height=2,bg='white').place(x=25,y=87)
 
         # Caja 2 (Contraseña)
@@ -1001,7 +1188,7 @@ class RegistrarCuenta:
                                                     "#2d3541",
                                                     35,
                                                     264,
-                                                    None)
+                                                    registrar)
         self.boton_registrarse.Botones()
 
         # Etiqueta Para llevar a inicio de sesion
@@ -1018,10 +1205,59 @@ class RegistrarCuenta:
                         command=self.registra_cuenta.destroy)
         self.regresar.place(x=200,y=313)
 
+        self.img1 = PhotoImage(file=(r"E:\EMMA\Proyecto\imagens\01.png"))
+        Label(self.registra_cuenta,image=self.img1,border=0,bg='#222831').place(x=50,y=50)
+
 #--------------------------------------------------------------------------------------------------------------
 
 class InicioSesion:
     def __init__(self,principal):
+
+        def sesion():
+
+            def quitar_frame_error():
+                error.destroy()  
+            
+
+            global usuario_sesion
+            usuario_sesion = self.Usuario.etiqueta.get()
+            contraseña = self.Contraseña.etiqueta.get()
+
+            
+
+            cursor.execute("SELECT * FROM usuarios WHERE usuario = ? AND contraseña = ?", (usuario_sesion, contraseña))
+            user = cursor.fetchone()
+
+            if user:
+                ventana_home = Home
+                ventana_home.mostrar_contenido(self)
+            
+            else:
+                error = Frame(self.principal,
+                            width=300,
+                            height=170,
+                            bg="#00ADB5",
+                            )
+                error.place(x=325,y=190)
+
+                eti_error = Label(error,
+                                    text=("Nombre de usuario o\ncontraseña incorrectos.\nIntente de nuevo."),
+                                    font=('Microsoft YaHei UI Light', 15),
+                                    fg="#222831",
+                                    bg="#00ADB5")
+                eti_error.place(x=38,y=20)
+
+                boton_error_regresar = BotonesDiferentes(error,
+                                    40,
+                                    10,
+                                    "REGRESAR",
+                                    "#393E46",#gris
+                                    '#328e93',#azul
+                                    8,
+                                    120,
+                                    quitar_frame_error)
+                boton_error_regresar.Botones()
+                
 
         self.principal = principal
         self.inicio_sesion = Frame(scn,width=925,
@@ -1048,6 +1284,7 @@ class InicioSesion:
                                 60,
                                 "Usuario")
         self.Usuario.Caja()
+        self.Usuario.etiqueta.get()
         Frame(self.Cajas_Texto, width=295, height=2, bg='WHITE').place(x=25, y=87)
 
 
@@ -1061,6 +1298,7 @@ class InicioSesion:
                                 130,
                                 "Contraseña")
         self.Contraseña.Caja()
+        self.Contraseña.etiqueta.get()
         Frame(self.Cajas_Texto,width=295,height=2,bg='white').place(x=25,y=157)
 
 
@@ -1073,7 +1311,7 @@ class InicioSesion:
                                                     "#2d3541",
                                                     35,
                                                     204,
-                                                    Home)
+                                                    sesion)
         self.boton_inicio_sesion.Botones()
 
         #imagen
